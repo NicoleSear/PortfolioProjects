@@ -33,6 +33,8 @@ FROM PortfolioProject..CovidDeaths$
 GROUP BY population, location
 order by PercentPopulationInfected desc
 
+-- we found that small countires such as Andorra have the highest infection count, followed by USA.
+
 --Here we will look at how many people died from COVID, by country with the highest death count per population
 SELECT location, MAX(cast(total_deaths as int)) AS TotalDeathCount
 FROM PortfolioProject..CovidDeaths$
@@ -41,6 +43,8 @@ GROUP BY location
 order by TotalDeathCount desc
 --we had the wrong data type which gave inpropper ordering, must be cast as int. 
 --we found locations that should not be included such as continents so we must use WHERE function 
+-- USA is followed by Brazil, Mexico and India. 
+
 
 --breaking down by continent 
 SELECT continent, MAX(cast(total_deaths as int)) AS TotalDeathCount
@@ -61,7 +65,7 @@ order by 1,2
 SELECT *
 FROM PortfolioProject..CovidVaccinations$
 
---looking at total pop vs vaccinations 
+--looking at total pop vs vaccinations (how many people have been vaccinated) 
 SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, 
 SUM(CONVERT(int, vac.new_vaccinations)) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date) 
 AS RollingPeopleVaccinated
@@ -73,6 +77,8 @@ and dea.date = vac.date
 WHERE dea.continent is not null
 order by 2,3
 
+-- here we joined the two tables; covid vaccinations and vacination loacation 
+
 --lets join the two tables together 
 SELECT *
 FROM PortfolioProject..CovidDeaths$ Dea
@@ -80,7 +86,7 @@ JOIN PortfolioProject..CovidVaccinations$ Vac
 ON dea.location = vac.location
 and dea.date = vac.date
 
---Use CTE 
+--Use CTE/ common table expression for poulation vs vaccination 
 WITH PopvsVac (Continent, location, date, population, New_Vaccinations, RollingPeopleVaccinated)
 AS
 (
@@ -99,7 +105,7 @@ SELECT *, (RollingPeopleVaccinated/Population)*100
 FROM popvsVac
 --this gives the vaccination rate of each country 
 
---temp table 
+--temp table version 
 Drop Table if exists #percentpopulationVaccinated
 create table #percentpopulationVaccinated
 (
